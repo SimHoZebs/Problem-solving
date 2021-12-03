@@ -1,5 +1,5 @@
-pub mod day2;
+pub mod day3;
 
 fn main() {
-  day2::main();
+  day3::main();
 }
