@@ -1004,16 +1004,21 @@ forward 7";
 pub fn main() {
   let splitted_input = INPUT.split("\n");
 
-  let mut h_pos = 0;
+  let mut h_pos: usize = 0;
   let mut depth: usize = 0;
+  let mut aim: usize = 0;
 
   for line in splitted_input {
     let splitted_line: Vec<&str> = line.split(" ").collect();
 
+    let unit = splitted_line[1].parse::<usize>().unwrap();
     match splitted_line[0] {
-      "up" => depth -= splitted_line[1].parse::<usize>().unwrap(),
-      "down" => depth += splitted_line[1].parse::<usize>().unwrap(),
-      "forward" => h_pos += splitted_line[1].parse::<usize>().unwrap(),
+      "up" => aim -= unit,
+      "down" => aim += unit,
+      "forward" => {
+        h_pos += unit;
+        depth += aim * unit
+      }
       _ => panic!("Unknown direction"),
     }
   }
