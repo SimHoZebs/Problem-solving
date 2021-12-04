@@ -1000,23 +1000,21 @@ const INPUT: &str = "000110000001
 101000010101";
 
 pub fn main() {
-  let san_input: Vec<&str> = INPUT.split("\n").collect();
+  let input: Vec<&str> = INPUT.split("\n").collect();
 
-  let mut sum_of_one_vec: Vec<usize> = vec![0; san_input[0].len()];
-  for line in &san_input {
+  let mut sums_of_one: Vec<u32> = vec![0; input[0].len()];
+  for line in &input {
     for (i, char) in line.chars().enumerate() {
-      if char.to_string() == "1" {
-        sum_of_one_vec[i] += 1;
-      }
+      sums_of_one[i] += char.to_digit(10).unwrap();
     }
   }
 
-  let input_len = san_input.len();
+  let input_len: u32 = input.len().try_into().unwrap();
 
   let mut gamma_rate = String::from("");
   let mut epsilon_rate = String::from("");
-  for sum in sum_of_one_vec {
-    if sum > input_len / 2 {
+  for sum in &sums_of_one {
+    if sum >= &(input_len / 2) {
       gamma_rate.push_str("1");
       epsilon_rate.push_str("0");
     } else {
