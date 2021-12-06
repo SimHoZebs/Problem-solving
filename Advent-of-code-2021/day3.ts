@@ -1,4 +1,4 @@
-const INPUT: &str = "000110000001
+const INPUT = `000110000001
 011011001101
 001101100111
 001101011001
@@ -997,8 +997,9 @@ const INPUT: &str = "000110000001
 011101111000
 101010000111
 101110011111
-101000010101";
-const TEST: &str = "00100
+101000010101`.split('\n');
+
+const TEST = `00100
 11110
 10110
 10111
@@ -1009,67 +1010,51 @@ const TEST: &str = "00100
 10000
 11001
 00010
-01010";
+01010`.split('\n');
 
-pub fn main() {
-  let input: Vec<&str> = TEST.split("\n").collect();
+recursive(INPUT, INPUT, 0);
 
-  recursive(&input, &input, 0);
-}
+function recursive(o2Candidates: string[], co2Candidates: string[], pos: number) {
+  console.log("o2", o2Candidates);
+  console.log("co2", co2Candidates);
+  console.log("pos", pos);
 
-fn recursive(o2_candidates: &Vec<&str>, co2_candidates: &Vec<&str>, position: usize) {
-  println!("{}", position);
-  println!("{:?}", o2_candidates);
-  println!("{:?}", co2_candidates);
-  let groups = [o2_candidates, co2_candidates];
+  if (o2Candidates.length === 1 && co2Candidates.length === 1) {
+    console.log(parseInt(o2Candidates[0], 2) * parseInt(co2Candidates[0], 2));
+    return;
+  }
 
-  for candidates in groups {
-    if candidates.len() == 1 {
-      println!("{}", candidates[0]);
+
+  let sumOfIndexForO2 = 0;
+  o2Candidates.map(candidate => {
+    sumOfIndexForO2 += parseInt(candidate[pos]);
+  });
+
+  let sumOfIndexForCo2 = 0;
+  co2Candidates.map(candidate => {
+    sumOfIndexForCo2 += parseInt(candidate[pos]);
+  });
+
+  const mostCommonNum = sumOfIndexForO2 >= o2Candidates.length / 2 ? 1 : 0;
+  console.log("mostCommonNum", mostCommonNum);
+  const leastCommonNum = sumOfIndexForCo2 >= co2Candidates.length / 2 ? 0 : 1;
+  console.log("leastCommonNum", leastCommonNum);
+
+  let newO2Candidates: string[] = [];
+  o2Candidates.map(candidate => {
+    if (parseInt(candidate[pos]) === mostCommonNum) {
+      newO2Candidates.push(candidate);
     }
-  }
+  });
 
-  let mut sum_for_o2: u32 = 0;
-  for line in o2_candidates {
-    sum_for_o2 += line.chars().nth(position).unwrap().to_digit(10).unwrap();
-  }
-  let mut sum_for_co2: u32 = 0;
-  for line in co2_candidates {
-    sum_for_co2 += line.chars().nth(position).unwrap().to_digit(10).unwrap();
-  }
-
-  let gamma_rate;
-  if sum_for_o2 >= (o2_candidates.len() / 2).try_into().unwrap() {
-    gamma_rate = "1";
-  } else {
-    gamma_rate = "0";
-  };
-
-  let epsilon_rate;
-  if sum_for_co2 >= (co2_candidates.len() / 2).try_into().unwrap() {
-    epsilon_rate = "0";
-  } else {
-    epsilon_rate = "1";
-  };
-
-  let mut new_o2_candidates = Vec::<&str>::new();
-  for line in o2_candidates {
-    if line.chars().nth(position).unwrap() == gamma_rate.chars().nth(0).unwrap() {
-      new_o2_candidates.push(line);
+  let newCo2Candidates: string[] = [];
+  co2Candidates.map(candidate => {
+    if (parseInt(candidate[pos]) === leastCommonNum) {
+      newCo2Candidates.push(candidate);
     }
-  }
+  });
 
-  let mut new_co2_candidates = Vec::<&str>::new();
-  for line in co2_candidates {
-    let index = line.chars().nth(position).unwrap();
-    let most_common_value = epsilon_rate.chars().nth(0).unwrap();
-    println!("index,{} mostcommonvalue,{}", index, most_common_value);
-
-    if index == most_common_value {
-      println!("line {}", line);
-      new_co2_candidates.push(line);
-    }
-  }
-
-  recursive(&new_o2_candidates, &new_co2_candidates, position + 1);
+  newO2Candidates = o2Candidates.length === 1 ? o2Candidates : newO2Candidates;
+  newCo2Candidates = co2Candidates.length === 1 ? co2Candidates : newCo2Candidates;
+  recursive(newO2Candidates, newCo2Candidates, pos + 1);
 }
