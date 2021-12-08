@@ -999,23 +999,8 @@ const INPUT = `000110000001
 101010000111
 101110011111
 101000010101`.split('\n');
-const TEST = `00100
-11110
-10110
-10111
-10101
-01111
-00111
-11100
-10000
-11001
-00010
-01010`.split('\n');
 recursive(INPUT, INPUT, 0);
 function recursive(o2Candidates, co2Candidates, pos) {
-    console.log("o2", o2Candidates);
-    console.log("co2", co2Candidates);
-    console.log("pos", pos);
     if (o2Candidates.length === 1 && co2Candidates.length === 1) {
         console.log(parseInt(o2Candidates[0], 2) * parseInt(co2Candidates[0], 2));
         return;
@@ -1029,9 +1014,7 @@ function recursive(o2Candidates, co2Candidates, pos) {
         sumOfIndexForCo2 += parseInt(candidate[pos]);
     });
     const mostCommonNum = sumOfIndexForO2 >= o2Candidates.length / 2 ? 1 : 0;
-    console.log("mostCommonNum", mostCommonNum);
     const leastCommonNum = sumOfIndexForCo2 >= co2Candidates.length / 2 ? 0 : 1;
-    console.log("leastCommonNum", leastCommonNum);
     let newO2Candidates = [];
     o2Candidates.map(candidate => {
         if (parseInt(candidate[pos]) === mostCommonNum) {
