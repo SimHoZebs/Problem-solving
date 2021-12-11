@@ -602,7 +602,7 @@ const rawBoard = `14 86 50 89 49
 48 73 85 97 35
 28 25 30 14 83`;
 
-const testRawBoard = `22 13 17 11  0
+const rawBoardTest = `22 13 17 11  0
  8  2 23  4 24
 21  9 14 16  7
  6 10  3 18  5
@@ -620,7 +620,7 @@ const testRawBoard = `22 13 17 11  0
 22 11 13  6  5
  2  0 12  3  7`;
 
-const testBalls = [7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19, 3, 26, 1];
+const ballsTest = [7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19, 3, 26, 1];
 
 function sanitized(rawBoard: string) {
   let boards: string[] | (string[] | undefined)[];
@@ -655,9 +655,22 @@ function createCountingBoard(boards: number[][][]) {
   );
 };
 
-function playBingo(balls: number[]) {
+function findLastWinner(balls: number[]) {
+  let winnerBoardIndexArray: number[] = [];
+  const boardCount = boards.length;
+  let result;
+
   for (let ballIndex = 0; ballIndex < balls.length; ballIndex++) {
+    const winnerCount = winnerBoardIndexArray.length;
+    if (winnerCount === boardCount || ballIndex === balls.length - 1) {
+      return result;
+    }
+
     for (let boardIndex = 0; boardIndex < boards.length; boardIndex++) {
+      if (winnerBoardIndexArray.includes(boardIndex)) {
+        continue;
+      }
+
       for (let rowIndex = 0; rowIndex < boards[boardIndex].length; rowIndex++) {
         const colIndex = boards[boardIndex][rowIndex].indexOf(balls[ballIndex]);
         if (colIndex !== -1) {
@@ -670,13 +683,19 @@ function playBingo(balls: number[]) {
 
     if (ballIndex >= 5) {
       for (let countingBoardIndex = 0; countingBoardIndex < countingBoard.length; countingBoardIndex++) {
-        const bingoRow = countingBoard[countingBoardIndex].row.indexOf(5);
-        if (bingoRow !== -1) {
-          return { boardIndex: countingBoardIndex, row: bingoRow, ballIndex: ballIndex };
+        if (winnerBoardIndexArray.includes(countingBoardIndex)) {
+          continue;
         }
+        const bingoRow = countingBoard[countingBoardIndex].row.indexOf(5);
         const bingoCol = countingBoard[countingBoardIndex].col.indexOf(5);
-        if (bingoCol !== -1) {
-          return { boardIndex: countingBoardIndex, col: bingoCol, ballIndex: ballIndex };
+        if (bingoRow !== -1 || bingoCol !== -1) {
+          result = {
+            boardIndex: countingBoardIndex,
+            row: bingoRow !== -1 ? bingoRow : undefined,
+            col: bingoCol !== -1 ? bingoCol : undefined,
+            ballIndex: ballIndex
+          };
+          winnerBoardIndexArray.push(countingBoardIndex);
         }
       }
     }
@@ -706,23 +725,7 @@ function calcFinalScore(balls: number[]) {
 
 const boards = sanitized(rawBoard);
 const countingBoard = createCountingBoard(boards);
-const result = playBingo(balls);
+const result = findLastWinner(balls);
 console.log(result);
 const finalScore = calcFinalScore(balls);
 console.log(finalScore);
-
-
-
-//if bing.row, then add all rows except the bingo row
-//if bing.col, then add all rows and subtract col.
-
-//count how many times each number appears in each row and column
-//if any equals 5, the board wins
-/**
- * [
-  * {
-  *  row: [row1,row2,row3...],
-  *  col: [col1,col2,col3...],
-  * },
- * ]
- */
