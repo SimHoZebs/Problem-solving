@@ -475,3 +475,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#compiled js files
+js/
