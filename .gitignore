@@ -478,3 +478,5 @@ dmypy.json
 
 #compiled js files
 js/
+
+test.exe
