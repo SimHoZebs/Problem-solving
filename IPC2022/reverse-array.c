@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// 30m
 int main(int argc, char const *argv[])
 {
   int arrLen;

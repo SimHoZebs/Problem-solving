@@ -3,6 +3,7 @@
 #define LEN 99
 
 // These questions are solved for speed; They can definitely be optimized.
+// 19m 53s
 
 int main(int argc, char const *argv[])
 {
