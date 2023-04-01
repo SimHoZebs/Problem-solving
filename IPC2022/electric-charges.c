@@ -8,7 +8,7 @@ int main()
   const double afterThousandCost = 0.09259;
 
   printf("Enter the KW hours used: ");
-  scanf("%d", &kwh);
+  scanf_s("%d", &kwh);
 
   int extra = 0;
   double ans = 0;

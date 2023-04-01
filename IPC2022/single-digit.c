@@ -9,6 +9,7 @@ int re(char num[SIZE], int i)
 
   if (num[i + 1] <= '9' && num[i + 1] >= '0')
   {
+    // printf("|%c - %c| = %d\n", num[i], num[i + 1], abs(num[i] - num[i + 1]));
     num[i] = '0' + abs(num[i] - num[i + 1]);
     re(num, i + 1);
   }
@@ -21,6 +22,7 @@ int re(char num[SIZE], int i)
     else
     {
       num[i] = ' ';
+      // printf("Current number is %s\n", num);
       re(num, 0);
     }
   }
