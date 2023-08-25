@@ -24,7 +24,7 @@ int main() {
     printf("%d\n", dictVal);
 
     // if the dictionary already has it and it isn't the current char, then it's
-    
+
     // not equivalent.
   }
 
