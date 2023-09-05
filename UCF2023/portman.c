@@ -3,7 +3,8 @@
 #include <string.h>
 
 /*
-  gcc -g -O2 -std=c11 -o a portman.c -lm && ./a
+gcc -g -O2 -std=c11 -o a portman.c -lm && ./a
+type ./input.md | ./a.exe > ./output.md
 */
 
 int main() {
@@ -47,22 +48,25 @@ int main() {
 
   char *answer = calloc(42, sizeof(char));
 
+  int k = 0;
   strcpy(answer, v1);
   if (v2HasVowel) {
-    int k = -1;
+    if (v1HasVowel) {
+      k = -1;
+    }
+
     for (int i = v2Len - 1; i >= 0; i--) {
       answer[v1Len + k] = v2[i];
       k++;
     }
   } else if (v1HasVowel) {
-    int k = 0;
     for (int i = v2Len - 1; i >= 0; i--) {
       answer[v1Len + k] = v2[i];
       k++;
     }
   } else {
     answer[v1Len] = 'o';
-    int k = 1;
+    k = 1;
     for (int i = v2Len - 1; i >= 0; i--) {
       answer[v1Len + k] = v2[i];
       k++;
