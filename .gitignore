@@ -480,3 +480,6 @@ dmypy.json
 js/
 
 test.exe
+a.exe
+*.out
+*.in
