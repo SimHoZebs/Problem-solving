@@ -1,0 +1,88 @@
+'use strict';
+
+import { WriteStream, createWriteStream } from "fs";
+process.stdin.resume();
+process.stdin.setEncoding('utf-8');
+
+let inputString: string = '';
+let inputLines: string[] = [];
+let currentLine: number = 0;
+
+process.stdin.on('data', function(inputStdin: string): void {
+    inputString += inputStdin;
+});
+
+process.stdin.on('end', function(): void {
+    inputLines = inputString.split('\n');
+    inputString = '';
+
+    main();
+});
+
+function readLine(): string {
+    return inputLines[currentLine++];
+}
+
+
+/*
+ * Complete the 'maxSubjectsNumber' function below.
+ *
+ * The function is expected to return an INTEGER.
+ * The function accepts following parameters:
+ *  1. INTEGER_ARRAY answered
+ *  2. INTEGER_ARRAY needed
+ *  3. INTEGER q
+ */
+
+function maxSubjectsNumber(answered: number[], needed: number[], q: number): number {
+  const len = answered.length
+  let remainingQ = q;
+  let passed = 0;
+  let diffArray:number[]= [];
+  for (let i = 0; i < len; i++){
+    diffArray[i] = needed[i] - answered[i];
+  }
+  
+  diffArray.sort((a, b)=> a-b);
+  
+  diffArray.forEach((diff)=>{
+    console.log("diff", diff, "and remainingQ", remainingQ)
+    if (remainingQ >= diff && diff > 0){
+      remainingQ -= diff;
+      passed++;
+    }
+  })
+  
+  return passed;
+}
+function main() {
+    const ws: WriteStream = createWriteStream(process.env['OUTPUT_PATH']);
+
+    const answeredCount: number = parseInt(readLine().trim(), 10);
+
+    let answered: number[] = [];
+
+    for (let i: number = 0; i < answeredCount; i++) {
+        const answeredItem: number = parseInt(readLine().trim(), 10);
+
+        answered.push(answeredItem);
+    }
+
+    const neededCount: number = parseInt(readLine().trim(), 10);
+
+    let needed: number[] = [];
+
+    for (let i: number = 0; i < neededCount; i++) {
+        const neededItem: number = parseInt(readLine().trim(), 10);
+
+        needed.push(neededItem);
+    }
+
+    const q: number = parseInt(readLine().trim(), 10);
+
+    const result: number = maxSubjectsNumber(answered, needed, q);
+
+    ws.write(result + '\n');
+
+    ws.end();
+}

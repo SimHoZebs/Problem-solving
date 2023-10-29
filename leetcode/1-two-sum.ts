@@ -12,14 +12,12 @@ function twoSum(nums: number[], target: number): number[] {
         answer = [i, j];
       }
     }
-
   }
 
   return answer;
-
 }
 
-const nums = [5, 2, 3, 9];
-const target = 5;
+const nums = [2, 3, 4, 5, 7, 9, 10, 20, 50];
+const target = 8;
 
 console.log(twoSum(nums, target));
