@@ -74,8 +74,10 @@ int main() {
   scanf("%d %lf", &count, &angle);
   angle = angle * (pi / 180);
   printf("Angle is: %lf\n", angle);
+  printf("count is: %d\n", count);
 
-  Group* groupArray = malloc(sizeof(Group) * count);
+  // size is double the count to store 2 copies of group with rad diff of 2pi
+  Group* groupArray = malloc(sizeof(Group) * count * 2);
   for (int i = 0; i < count; i++) {
     int x, y;
     scanf("%d %d %d", &x, &y, &groupArray[i].size);
@@ -85,11 +87,48 @@ int main() {
     if (rad < 0) rad = pi - rad;
 
     groupArray[i].rad = rad;
+    groupArray[i + count].rad = rad + 2 * pi;
+    groupArray[i + count].size = groupArray[i].size;
   }
 
-  printArray(groupArray, count);
-  mergeSort(groupArray, 0, count - 1);
-  printArray(groupArray, count);
+  printArray(groupArray, count * 2);
+  mergeSort(groupArray, 0, (count * 2) - 1);
+  printArray(groupArray, count * 2);
+
+  /**
+   * Check the distance between current group and the next group.
+   * If the distance is larger than the angle, return 0.
+   * If the distance is less than the angle,
+   * Let's say the projection starts 1 angle after the current group.
+   * In that case, what is the radian, and what groups are in there?
+   * If that radian
+   */
+
+  int minPeopleCount = -1;
+  for (int i = 0; i < count; i++) {
+    if (minPeopleCount == 0) break;
+
+    printf("Testing group: %d\n", i);
+    double tempAngle = groupArray[i].rad + (1 * pi / 180) + angle;
+    printf("projection angle is %lf\n", tempAngle);
+
+    int inProjectionCount = 0;
+    for (int j = i + 1; j < count * 2; j++) {
+      if (groupArray[j].rad <= tempAngle) {
+        printf("group %d is in projection (%lf) \n", j, groupArray[j].rad);
+        inProjectionCount += groupArray[j].size;
+      } else {
+        printf("group %d is outside projection, (%lf) \n", j,
+               groupArray[j].rad);
+        break;
+      }
+    }
+    printf("Total of %d people in projection\n", inProjectionCount);
+    if (minPeopleCount < 0 || inProjectionCount < minPeopleCount) {
+      minPeopleCount = inProjectionCount;
+    }
+  }
+  printf("minimum people count is %d\n", minPeopleCount);
 
   return 0;
 }
