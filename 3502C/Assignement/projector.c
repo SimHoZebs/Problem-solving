@@ -13,51 +13,40 @@ typedef struct Group {
   int size;
 } Group;
 
-void merge(Group* groupArr, int l, int m, int r) {
-  int i, j, k;
-  int n1 = m - l + 1;
-  int n2 = r - m;
+void merge(Group groupArr[], int start, int mid, int end) {
+  int length = end - start + 1;
+  Group* temp = calloc(length, sizeof(Group));
 
-  Group L[n1], R[n2];
+  int count1 = start;
+  int count2 = mid;
 
-  for (i = 0; i < n1; i++) L[i] = groupArr[l + i];
-  for (j = 0; j < n2; j++) R[j] = groupArr[m + 1 + j];
-
-  i = 0;
-  j = 0;
-  k = l;
-  while (i < n1 && j < n2) {
-    if (L[i].rad <= R[j].rad) {
-      groupArr[k] = L[i];
-      i++;
+  int mc = 0;
+  while ((count1 < mid) || (count2 <= end)) {
+    if (count2 > end ||
+        (count1 < mid && groupArr[count1].rad < groupArr[count2].rad)) {
+      temp[mc] = groupArr[count1];
+      count1++;
+      mc++;
     } else {
-      groupArr[k] = R[j];
-      j++;
+      temp[mc] = groupArr[count2];
+      count2++;
+      mc++;
     }
-    k++;
   }
 
-  while (i < n1) {
-    groupArr[k] = L[i];
-    i++;
-    k++;
-  }
+  for (int i = start; i <= end; i++) groupArr[i] = temp[i - start];
 
-  while (j < n2) {
-    groupArr[k] = R[j];
-    j++;
-    k++;
-  }
+  free(temp);
 }
 
-void mergeSort(Group* groupArray, int l, int r) {
-  if (l < r) {
-    int m = l + (r - l) / 2;
+void mergeSort(Group groupArray[], int start, int end) {
+  if (start < end) {
+    int mid = start + (end - start) / 2;
 
-    mergeSort(groupArray, l, m);
-    mergeSort(groupArray, m + 1, r);
+    mergeSort(groupArray, start, mid);
+    mergeSort(groupArray, mid + 1, end);
 
-    merge(groupArray, l, m, r);
+    merge(groupArray, start, mid, end);
   }
 }
 
