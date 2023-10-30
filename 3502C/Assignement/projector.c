@@ -105,8 +105,14 @@ int main() {
    */
 
   int minPeopleCount = -1;
+  double maxDistance = 0;
   for (int i = 0; i < count; i++) {
     if (minPeopleCount == 0) break;
+    printf("%lf, %lf\n", groupArray[i + 1].rad, groupArray[i].rad);
+    if (groupArray[i + 1].rad - groupArray[i].rad > maxDistance) {
+      maxDistance = groupArray[i + 1].rad - groupArray[i].rad;
+      printf("max distance: %lf\n", maxDistance);
+    }
 
     printf("Testing group: %d\n", i);
     double tempAngle = groupArray[i].rad + (1 * pi / 180) + angle;
@@ -129,6 +135,7 @@ int main() {
     }
   }
   printf("minimum people count is %d\n", minPeopleCount);
+  printf("max distance count is %.4lf\n", maxDistance * (180 / pi));
 
   return 0;
 }
