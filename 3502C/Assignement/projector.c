@@ -13,58 +13,46 @@ typedef struct Group {
   int size;
 } Group;
 
-void merge(Group* groupArr, int l, int m, int r) {
-  int i, j, k;
-  int n1 = m - l + 1;
-  int n2 = r - m;
+// merge divided arrays into one.
+void merge(Group arr[], int lStart, int rStart, int end) {
+  int len = end - lStart + 1;
 
-  Group L[n1], R[n2];
+  // array to store sorted portion
+  Group* tmp = calloc(len, sizeof(Group));
 
-  for (i = 0; i < n1; i++) L[i] = groupArr[l + i];
-  for (j = 0; j < n2; j++) R[j] = groupArr[m + 1 + j];
+  int left = lStart;
+  int right = rStart;
+  int mergeIndex = 0;
 
-  i = 0;
-  j = 0;
-  k = l;
-  while (i < n1 && j < n2) {
-    if (L[i].rad <= R[j].rad) {
-      groupArr[k] = L[i];
-      i++;
+  while ((left < rStart) || (right <= end)) {
+    if (right > end || (left < rStart && arr[left].rad < arr[right].rad)) {
+      tmp[mergeIndex] = arr[left];
+      left++;
     } else {
-      groupArr[k] = R[j];
-      j++;
+      tmp[mergeIndex] = arr[right];
+      right++;
     }
-    k++;
+    mergeIndex++;
   }
 
-  while (i < n1) {
-    groupArr[k] = L[i];
-    i++;
-    k++;
-  }
+  // Copy back all of our values into the original array.
+  for (int i = lStart; i <= end; i++) arr[i] = tmp[i - lStart];
 
-  while (j < n2) {
-    groupArr[k] = R[j];
-    j++;
-    k++;
-  }
+  // clean up
+  free(tmp);
 }
 
-void mergeSort(Group* groupArray, int l, int r) {
-  if (l < r) {
-    int m = l + (r - l) / 2;
+void mergeSort(Group* groupArray, int start, int end) {
+  if (start < end) {
+    int m = (start + end) / 2;
 
-    mergeSort(groupArray, l, m);
-    mergeSort(groupArray, m + 1, r);
+    // recursively divide from middle
+    mergeSort(groupArray, start, m);
+    mergeSort(groupArray, m + 1, end);
 
-    merge(groupArray, l, m, r);
+    // actually merge and sort
+    merge(groupArray, start, m + 1, end);
   }
-}
-
-void printArray(Group* A, int size) {
-  int i;
-  for (i = 0; i < size; i++) printf("%lf ", A[i].rad);
-  printf("\n");
 }
 
 int main() {
@@ -72,11 +60,10 @@ int main() {
   int count;
   double angle;
   scanf("%d %lf", &count, &angle);
+  // convert angle to radian
   angle = angle * (pi / 180);
-  printf("Angle is: %lf\n", angle);
-  printf("count is: %d\n", count);
 
-  // size is double the count to store 2 copies of group with rad diff of 2pi
+  // size is double the count to store a copy of each group with diff radian
   Group* groupArray = malloc(sizeof(Group) * count * 2);
   for (int i = 0; i < count; i++) {
     int x, y;
@@ -87,55 +74,50 @@ int main() {
     if (rad < 0) rad = pi - rad;
 
     groupArray[i].rad = rad;
+
+    // storing a copy with 2*pi more rad to emulate circular sweep
     groupArray[i + count].rad = rad + 2 * pi;
     groupArray[i + count].size = groupArray[i].size;
   }
 
-  printArray(groupArray, count * 2);
+  // sort groups by radian
   mergeSort(groupArray, 0, (count * 2) - 1);
-  printArray(groupArray, count * 2);
-
-  /**
-   * Check the distance between current group and the next group.
-   * If the distance is larger than the angle, return 0.
-   * If the distance is less than the angle,
-   * Let's say the projection starts 1 angle after the current group.
-   * In that case, what is the radian, and what groups are in there?
-   * If that radian
-   */
 
   int minPeopleCount = -1;
   double maxDistance = 0;
+  // compare groups' radial distance with projection's radian
   for (int i = 0; i < count; i++) {
+    // if previous comparison found no people in projection, no more check is
+    // necessary.
     if (minPeopleCount == 0) break;
-    printf("%lf, %lf\n", groupArray[i + 1].rad, groupArray[i].rad);
+
+    // store largest group radial distance diff
     if (groupArray[i + 1].rad - groupArray[i].rad > maxDistance) {
       maxDistance = groupArray[i + 1].rad - groupArray[i].rad;
-      printf("max distance: %lf\n", maxDistance);
     }
 
-    printf("Testing group: %d\n", i);
-    double tempAngle = groupArray[i].rad + (1 * pi / 180) + angle;
-    printf("projection angle is %lf\n", tempAngle);
+    // the projection radian excluding the current group
+    double tempRad = groupArray[i].rad + (1 * pi / 180) + angle;
 
     int inProjectionCount = 0;
+    // check what groups are in this projection
     for (int j = i + 1; j < count * 2; j++) {
-      if (groupArray[j].rad <= tempAngle) {
-        printf("group %d is in projection (%lf) \n", j, groupArray[j].rad);
-        inProjectionCount += groupArray[j].size;
-      } else {
-        printf("group %d is outside projection, (%lf) \n", j,
-               groupArray[j].rad);
-        break;
-      }
+      if (groupArray[j].rad > tempRad) break;
+      inProjectionCount += groupArray[j].size;
     }
-    printf("Total of %d people in projection\n", inProjectionCount);
+
+    // store the minimum number of people in projection
     if (minPeopleCount < 0 || inProjectionCount < minPeopleCount) {
       minPeopleCount = inProjectionCount;
     }
   }
-  printf("minimum people count is %d\n", minPeopleCount);
-  printf("max distance count is %.4lf\n", maxDistance * (180 / pi));
+
+  // output answers
+  printf("%d\n", minPeopleCount);
+  printf("%.4lf\n", maxDistance * (180 / pi));
+
+  // clean up
+  free(groupArray);
 
   return 0;
 }
