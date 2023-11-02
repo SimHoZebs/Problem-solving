@@ -479,7 +479,6 @@ dmypy.json
 #compiled js files
 js/
 
-test.exe
-a.exe
+*.exe
 *.out
 *.in
