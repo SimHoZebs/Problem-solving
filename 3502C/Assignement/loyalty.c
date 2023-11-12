@@ -177,31 +177,43 @@ Node* getMaxNode(Node* node) {
 Node* del(Node* node, char name[]) {
   node->size--;
 
+  // if target node is found
   if (compareBST(node, name) == 0) {
+    // if only left node
     if (node->left && !node->right) {
+      // then use it to fill the gap
       Node* replacer = node->left;
       free(node);
       return replacer;
-    } else if (node->right && !node->left) {
+    }
+    // if only right node
+    else if (node->right && !node->left) {
+      // then use it to fill the gap
       Node* replacer = node->right;
+
       free(node);
       return replacer;
     }
-    // use left max value as per program requirement
+    // if both nodes exist, use left max value as per program requirement
     else if (node->left && node->right) {
       Node* maxNode = getMaxNode(node->left);
+
+      // replace this node data with maxNode
       node->data = maxNode->data;
 
       // now that the data is replaced, delete that node.
       node->left = del(node->left, maxNode->data->name);
       return node;
     }
-    // if leaf node, delete the node.
+    // leaf node
     else {
       free(node);
       return NULL;
     }
-  } else {
+  }
+  // if target node is not found, keep looking
+  else {
+    // traverse according to BST rules
     if (compareBST(node, name) > 0) {
       node->left = del(node->left, name);
     } else {
@@ -212,17 +224,26 @@ Node* del(Node* node, char name[]) {
   return node;
 };
 
+// returns the number of nodes 'smaller' than target node
 int countSmaller(Node* node, char* name, int count) {
-  if (!node) {
-    return count;
-  }
+  if (!node) return count;
 
+  // this node is larger than target node
   if (compareBST(node, name) > 0) {
+    // continue looking
     return countSmaller(node->left, name, count);
-  } else if (compareBST(node, name) < 0) {
+  }
+  // this node is smaller than target node
+  else if (compareBST(node, name) < 0) {
+    // then everything on its left is smaller than target, if there is any
     if (node->left) count += node->left->size;
+
+    // continue looking; count + 1 to include this node.
     return countSmaller(node->right, name, count + 1);
-  } else {
+  }
+  // target node found
+  else {
+    // then everything on its left is smaller than target, if there is any
     if (node->left) count += node->left->size;
     return count;
   }
@@ -250,10 +271,14 @@ void merge(Customer* arr[], int lStart, int rStart, int end) {
     // if no sides are exhausted and have same points, sort by ascending name.
     if (lCustomer && rCustomer && compareMerge(lCustomer, rCustomer) == 0) {
       // compare name order and push in ascending order
+
+      // left comes first
       if (strcmp(lCustomer->name, rCustomer->name) < 0) {
         merged[mergeIndex] = lCustomer;
         left++;
-      } else {
+      }
+      // right comes first
+      else {
         merged[mergeIndex] = rCustomer;
         right++;
       }
@@ -314,6 +339,73 @@ void inorder(Node* node, Customer** arr, int* i) {
   free(node);
 }
 
+// process commands
+int process(char command[], char name[], Node* root) {
+  int points = 0;
+
+  // since all commands start with a unique char (except search and sub),
+  // we can check the first char instead of the whole string
+  switch (command[0]) {
+    // search or sub
+    case 's':
+      // search
+      if (command[1] == 'e') search(root, name);
+      // sub
+      else {
+        scanf("%d", &points);
+        if (!getNode(root, name)) {
+          printf("%s not found", name);
+        } else {
+          sub(root, name, points);
+        }
+      }
+      break;
+
+    // del
+    case 'd':
+      // see if customer exists first
+      Node* node = getNode(root, name);
+
+      // if customer exists, delete
+      if (node) {
+        Customer* customer = node->data;
+
+        del(root, name);
+
+        // free target customer; this can't be done inside del as the
+        // recursive call would free customer replacing the target as well
+        free(customer);
+        printf("%s deleted", name);
+      }
+      // otherwise skip
+      else {
+        printf("%s not found", name);
+      }
+      break;
+
+    // count_smaller
+    case 'c':
+      printf("%d", countSmaller(root, name, 0));
+      break;
+
+    // add
+    case 'a':
+      scanf("%d", &points);
+      Node* nodeToAdd = getNode(root, name);
+      if (nodeToAdd) {
+        nodeToAdd->data->points += points;
+        printf("%s %d", nodeToAdd->data->name, nodeToAdd->data->points);
+      } else {
+        insert(root, name, points);
+      }
+      break;
+    case 't':
+      test(getNode(root, name));
+  }
+
+  printf("\n");
+}
+
 int main() {
   int count;
   scanf("%d", &count);
@@ -323,83 +415,22 @@ int main() {
   for (int i = 0; i < count; i++) {
     char* command = calloc(1, (1 + COMMAND_MAX) * sizeof(char));
     char* name = calloc(1, (1 + NAME_MAX) * sizeof(char));
-    int points = 0;
     scanf("%s %s", command, name);
 
-    // since all commands start with a unique char (except search and sub),
-    // we can check the first char instead of the whole string
-    switch (command[0]) {
-      // search or sub
-      case 's':
-        // search
-        if (command[1] == 'e') search(root, name);
-        // sub
-        else {
-          scanf("%d", &points);
-          if (!getNode(root, name)) {
-            printf("%s not found", name);
-          } else {
-            sub(root, name, points);
-          }
-        }
-        break;
-
-      // del
-      case 'd':
-        Node* node = getNode(root, name);
-
-        // run del only if customer exists
-        if (node) {
-          Customer* customer = node->data;
-
-          del(root, name);
-
-          // free target customer; this can't be done inside del as the
-          // recursive call would free customer replacing the target
-          free(customer);
-          printf("%s deleted", name);
-        }
-        // otherwise skip
-        else {
-          printf("%s not found", name);
-        }
-        break;
-
-      // count_smaller
-      case 'c':
-        printf("%d", countSmaller(root, name, 0));
-        break;
-
-      // add
-      case 'a':
-        scanf("%d", &points);
-        Node* nodeToAdd = getNode(root, name);
-        if (nodeToAdd) {
-          nodeToAdd->data->points += points;
-          printf("%s %d", nodeToAdd->data->name, nodeToAdd->data->points);
-        } else {
-          insert(root, name, points);
-        }
-        break;
-      case 't':
-        test(getNode(root, name));
-    }
-
-    printf("\n");
+    // process command
+    process(command, name, root);
   }
 
   // array for final part of the answer
-  printf("yo\n");
-  printf("size: %d\n", root->size);
   Customer** customerArray = malloc(root->size * sizeof(Customer*));
 
   int index = 0;
   int size = root->size;
 
-  // creates an inorder array from BST and free all nodes.
+  // creates an inorder array from BST and free all nodes, including root.
   inorder(root, customerArray, &index);
 
-  // sort
+  // sort the array
   mergeSort(customerArray, 0, size - 1);
 
   // final print loop
