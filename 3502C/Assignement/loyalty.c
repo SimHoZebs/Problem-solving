@@ -123,17 +123,14 @@ void insert(Node* node, char name[], int points) {
 
   // customer doesn't exist in tree; create new node
   if (customer == NULL) {
-    customer = calloc(1, sizeof(Customer));
-    strcpy(customer->name, name);
-    customer->points = points;
+    customer = createCustomer(name, points);
 
     node->data = customer;
     node->size = 1;
     printf("%s %d", customer->name, customer->points);
   }
-  // customer found, so add points
+  // customer found
   else if (strcmp(customer->name, name) == 0) {
-    customer->points += points;
     printf("%s %d", customer->name, customer->points);
   }
   // customer belongs under this node
@@ -141,12 +138,12 @@ void insert(Node* node, char name[], int points) {
     node->size++;
 
     if (strcmp(customer->name, name) > 0) {
-      if (!node->left) node->left = calloc(1, sizeof(Node));
-
+      // if empty node
+      if (!node->left) node->left = createNode(name, points);
       insert(node->left, name, points);
     } else {
-      if (!node->right) node->right = calloc(1, sizeof(Node));
-
+      // if empty node
+      if (!node->right) node->right = createNode(name, points);
       insert(node->right, name, points);
     }
   }
@@ -157,8 +154,12 @@ void sub(Node* node, char name[], int points) {
   int cmp = compareBST(node, name);
 
   if (cmp == 0) {
+    // subtract points
     customer->points -= points;
+
+    // if points go under 0, set it to 0
     if (customer->points < 0) customer->points = 0;
+
     printf("%s %d", customer->name, customer->points);
   } else {
     sub(nextNode(node, name), name, points);
@@ -397,11 +398,16 @@ int process(char command[], char name[], Node* root) {
     // add
     case 'a':
       scanf("%d", &points);
+      // check if node exists
       Node* nodeToAdd = getNode(root, name);
+
+      // if it exists, then add points to it
       if (nodeToAdd) {
         nodeToAdd->data->points += points;
         printf("%s %d", nodeToAdd->data->name, nodeToAdd->data->points);
-      } else {
+      }
+      // insert to tree otherwise
+      else {
         insert(root, name, points);
       }
       break;
