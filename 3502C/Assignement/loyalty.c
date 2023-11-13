@@ -343,7 +343,7 @@ void inorder(Node* node, Customer** arr, int* i) {
 }
 
 // process commands
-int process(char command[], char name[], Node* root) {
+void process(char command[], char name[], Node* root) {
   int points = 0;
 
   // since all commands start with a unique char (except search and sub),
@@ -375,7 +375,7 @@ int process(char command[], char name[], Node* root) {
 
         del(root, name);
 
-        // free target customer; this can't be done inside del as the
+        // free target customer; this part can't be done inside del as the
         // recursive call would free customer replacing the target as well
         free(customer);
         printf("%s deleted", name);
