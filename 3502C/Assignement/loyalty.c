@@ -112,38 +112,34 @@ Node* createNode(char name[], int points) {
   return tmp;
 }
 
-void insert(Node* node, char name[], int points) {
-  // NULL node - should never happen, but just in case.
-  if (!node) {
-    printf("this node is NULL\n");
-    return;
-  }
-
+Node* insert(Node* node, char name[], int points) {
   Customer* customer = node->data;
 
-  // customer doesn't exist in tree; create new node
+  // root node case; no customer exist in tree yet
   if (customer == NULL) {
-    customer = createCustomer(name, points);
-
-    node->data = customer;
+    node->data = createCustomer(name, points);
     node->size = 1;
-    printf("%s %d", customer->name, customer->points);
+    return node;
   }
   // customer found
   else if (strcmp(customer->name, name) == 0) {
-    printf("%s %d", customer->name, customer->points);
+    return node;
   }
-  // customer belongs under this node
+  // customer not found; should be somewhere under this node
   else {
     node->size++;
 
     if (strcmp(customer->name, name) > 0) {
       // if empty node
       if (!node->left) node->left = createNode(name, points);
+
+      // keep traversing
       insert(node->left, name, points);
     } else {
       // if empty node
       if (!node->right) node->right = createNode(name, points);
+
+      // keep traversing
       insert(node->right, name, points);
     }
   }
@@ -408,7 +404,8 @@ int process(char command[], char name[], Node* root) {
       }
       // insert to tree otherwise
       else {
-        insert(root, name, points);
+        Node* newNode = insert(root, name, points);
+        printf("%s %d", newNode->data->name, newNode->data->points);
       }
       break;
     case 't':
