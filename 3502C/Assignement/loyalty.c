@@ -42,11 +42,11 @@ void test(Node* node) {
   printf("node right pointer: %p\n", node->right);
   if (node->right)
     printf("node right data name: %s\n", node->right->data->name);
-  printf("---END---\n");
+  printf("---------\n");
 }
 
 // compares a node to a value; here, the value are names.
-int compareBST(Node* node, char name2[]) {
+int compareNode(Node* node, char name2[]) {
   return strcmp(node->data->name, name2);
 }
 
@@ -64,7 +64,7 @@ int compareMerge(Customer* c1, Customer* c2) {
 
 // returns the child node to traverse to
 Node* nextNode(Node* node, char name[]) {
-  int cmp = compareBST(node, name);
+  int cmp = compareNode(node, name);
 
   if (cmp > 0)
     return (node->left);
@@ -76,7 +76,7 @@ Node* nextNode(Node* node, char name[]) {
 void searchRecursive(Node* node, char name[], int depth) {
   if (!node || !node->data)
     printf("%s not found", name);
-  else if (compareBST(node, name) != 0)
+  else if (compareNode(node, name) != 0)
     searchRecursive(nextNode(node, name), name, depth + 1);
   else
     printf("%s %d %d", name, node->data->points, depth);
@@ -89,7 +89,7 @@ void search(Node* node, char name[]) { searchRecursive(node, name, 0); }
 Node* getNode(Node* node, char name[]) {
   if (!node || !node->data) return NULL;
 
-  if (compareBST(node, name) != 0) {
+  if (compareNode(node, name) != 0) {
     getNode(nextNode(node, name), name);
   } else {
     return node;
@@ -122,14 +122,14 @@ Node* insert(Node* node, char name[], int points) {
     return node;
   }
   // customer found
-  else if (strcmp(customer->name, name) == 0) {
+  else if (compareNode(node, name) == 0) {
     return node;
   }
   // customer not found; should be somewhere under this node
   else {
     node->size++;
 
-    if (strcmp(customer->name, name) > 0) {
+    if (compareNode(node, name) > 0) {
       // if empty node
       if (!node->left) node->left = createNode(name, points);
 
@@ -147,7 +147,7 @@ Node* insert(Node* node, char name[], int points) {
 
 void sub(Node* node, char name[], int points) {
   Customer* customer = node->data;
-  int cmp = compareBST(node, name);
+  int cmp = compareNode(node, name);
 
   if (cmp == 0) {
     // subtract points
@@ -181,7 +181,7 @@ Node* del(Node* node, char name[]) {
   node->size--;
 
   // if target node is found
-  if (compareBST(node, name) == 0) {
+  if (compareNode(node, name) == 0) {
     // if only left node
     if (node->left && !node->right) {
       // then use it to fill the gap
@@ -217,7 +217,7 @@ Node* del(Node* node, char name[]) {
   // if target node is not found, keep looking
   else {
     // traverse according to BST rules
-    if (compareBST(node, name) > 0) {
+    if (compareNode(node, name) > 0) {
       node->left = del(node->left, name);
     } else {
       node->right = del(node->right, name);
@@ -232,12 +232,12 @@ int countSmaller(Node* node, char* name, int count) {
   if (!node) return count;
 
   // this node is larger than target node
-  if (compareBST(node, name) > 0) {
+  if (compareNode(node, name) > 0) {
     // continue looking
     return countSmaller(node->left, name, count);
   }
   // this node is smaller than target node
-  else if (compareBST(node, name) < 0) {
+  else if (compareNode(node, name) < 0) {
     // then everything on its left is smaller than target, if there is any
     if (node->left) count += node->left->size;
 
@@ -419,6 +419,7 @@ int main() {
   int count;
   scanf("%d", &count);
 
+  // root node specifically
   Node* root = calloc(1, sizeof(Node));
 
   for (int i = 0; i < count; i++) {
