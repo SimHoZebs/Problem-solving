@@ -46,8 +46,8 @@ void test(Node* node) {
 }
 
 // compares a node to a value; here, the value are names.
-int compareNode(Node* node, char name2[]) {
-  return strcmp(node->data->name, name2);
+int compareNode(Node* node, Node* node2) {
+  return strcmp(node->data->name, node2->data->name);
 }
 
 // compare two customers. 1 when first is larger, 0 if equal, -1 otherwise.
@@ -64,7 +64,7 @@ int compareMerge(Customer* c1, Customer* c2) {
 
 // returns the child node to traverse to
 Node* nextNode(Node* node, char name[]) {
-  int cmp = compareNode(node, name);
+  int cmp = strcmp(node->data->name, name);
 
   if (cmp > 0)
     return (node->left);
@@ -76,7 +76,7 @@ Node* nextNode(Node* node, char name[]) {
 void searchRecursive(Node* node, char name[], int depth) {
   if (!node || !node->data)
     printf("%s not found", name);
-  else if (compareNode(node, name) != 0)
+  else if (strcmp(node->data->name, name) != 0)
     searchRecursive(nextNode(node, name), name, depth + 1);
   else
     printf("%s %d %d", name, node->data->points, depth);
@@ -89,7 +89,7 @@ void search(Node* node, char name[]) { searchRecursive(node, name, 0); }
 Node* getNode(Node* node, char name[]) {
   if (!node || !node->data) return NULL;
 
-  if (compareNode(node, name) != 0) {
+  if (strcmp(node->data->name, name) != 0) {
     getNode(nextNode(node, name), name);
   } else {
     return node;
@@ -112,42 +112,34 @@ Node* createNode(char name[], int points) {
   return tmp;
 }
 
-Node* insert(Node* node, char name[], int points) {
-  Customer* customer = node->data;
+// insert node in the right place
+Node* insert(Node* node, Node* element) {
+  // empty tree
+  if (node == NULL) return element;
 
-  // root node case; no customer exist in tree yet
-  if (customer == NULL) {
-    node->data = createCustomer(name, points);
-    node->size = 1;
-    return node;
-  }
   // customer found
-  else if (compareNode(node, name) == 0) {
-    return node;
-  }
   // customer not found; should be somewhere under this node
   else {
     node->size++;
-
-    if (compareNode(node, name) > 0) {
-      // if empty node
-      if (!node->left) node->left = createNode(name, points);
-
-      // keep traversing
-      insert(node->left, name, points);
+    if (compareNode(node, element) > 0) {
+      if (node->left) {
+        node->left = insert(node->left, element);
+      } else
+        node->left = element;
     } else {
-      // if empty node
-      if (!node->right) node->right = createNode(name, points);
-
-      // keep traversing
-      insert(node->right, name, points);
+      if (node->right) {
+        node->right = insert(node->right, element);
+      } else
+        node->right = element;
     }
+    return node;
   }
 };
 
 void sub(Node* node, char name[], int points) {
+  if (!node) return;  // subtracting on an empty tree
   Customer* customer = node->data;
-  int cmp = compareNode(node, name);
+  int cmp = strcmp(node->data->name, name);
 
   if (cmp == 0) {
     // subtract points
@@ -163,11 +155,8 @@ void sub(Node* node, char name[], int points) {
 };
 
 Node* getMaxNode(Node* node) {
-  // NULL node - should never happen, but just in case.
-  if (!node) {
-    printf("this node is NULL\n");
-    return NULL;
-  }
+  // empty tree
+  if (!node) return NULL;
 
   if (node->right == NULL)
     return node;
@@ -178,10 +167,13 @@ Node* getMaxNode(Node* node) {
 // recrusively replaces node data and deletes empty leaf node.
 // as del() only runs when customer exists, node is never NULL.
 Node* del(Node* node, char name[]) {
+  // emptry tree
+  if (!node) return NULL;
+
   node->size--;
 
   // if target node is found
-  if (compareNode(node, name) == 0) {
+  if (strcmp(node->data->name, name) == 0) {
     // if only left node
     if (node->left && !node->right) {
       // then use it to fill the gap
@@ -217,7 +209,7 @@ Node* del(Node* node, char name[]) {
   // if target node is not found, keep looking
   else {
     // traverse according to BST rules
-    if (compareNode(node, name) > 0) {
+    if (strcmp(node->data->name, name) > 0) {
       node->left = del(node->left, name);
     } else {
       node->right = del(node->right, name);
@@ -229,15 +221,16 @@ Node* del(Node* node, char name[]) {
 
 // returns the number of nodes 'smaller' than target node
 int countSmaller(Node* node, char* name, int count) {
+  // empty tree or the parent is a leaf, meaning that was the last node to count
   if (!node) return count;
 
   // this node is larger than target node
-  if (compareNode(node, name) > 0) {
+  if (strcmp(node->data->name, name) > 0) {
     // continue looking
     return countSmaller(node->left, name, count);
   }
   // this node is smaller than target node
-  else if (compareNode(node, name) < 0) {
+  else if (strcmp(node->data->name, name) < 0) {
     // then everything on its left is smaller than target, if there is any
     if (node->left) count += node->left->size;
 
@@ -342,93 +335,89 @@ void inorder(Node* node, Customer** arr, int* i) {
   free(node);
 }
 
-// process commands
-void process(char command[], char name[], Node* root) {
-  int points = 0;
-
-  // since all commands start with a unique char (except search and sub),
-  // we can check the first char instead of the whole string
-  switch (command[0]) {
-    // search or sub
-    case 's':
-      // search
-      if (command[1] == 'e') search(root, name);
-      // sub
-      else {
-        scanf("%d", &points);
-        if (!getNode(root, name)) {
-          printf("%s not found", name);
-        } else {
-          sub(root, name, points);
-        }
-      }
-      break;
-
-    // del
-    case 'd':
-      // see if customer exists first
-      Node* node = getNode(root, name);
-
-      // if customer exists, delete
-      if (node) {
-        Customer* customer = node->data;
-
-        del(root, name);
-
-        // free target customer; this part can't be done inside del as the
-        // recursive call would free customer replacing the target as well
-        free(customer);
-        printf("%s deleted", name);
-      }
-      // otherwise skip
-      else {
-        printf("%s not found", name);
-      }
-      break;
-
-    // count_smaller
-    case 'c':
-      printf("%d", countSmaller(root, name, 0));
-      break;
-
-    // add
-    case 'a':
-      scanf("%d", &points);
-      // check if node exists
-      Node* nodeToAdd = getNode(root, name);
-
-      // if it exists, then add points to it
-      if (nodeToAdd) {
-        nodeToAdd->data->points += points;
-        printf("%s %d", nodeToAdd->data->name, nodeToAdd->data->points);
-      }
-      // insert to tree otherwise
-      else {
-        Node* newNode = insert(root, name, points);
-        printf("%s %d", newNode->data->name, newNode->data->points);
-      }
-      break;
-    case 't':
-      test(getNode(root, name));
-  }
-
-  printf("\n");
-}
-
 int main() {
   int count;
   scanf("%d", &count);
 
   // root node specifically
-  Node* root = calloc(1, sizeof(Node));
+  Node* root = NULL;
 
   for (int i = 0; i < count; i++) {
     char* command = calloc(1, (1 + COMMAND_MAX) * sizeof(char));
     char* name = calloc(1, (1 + NAME_MAX) * sizeof(char));
     scanf("%s %s", command, name);
+    int points = 0;
 
     // process command
-    process(command, name, root);
+
+    // since all commands start with a unique char (except search and sub),
+    // we can check the first char instead of the whole string
+    switch (command[0]) {
+      // search or sub
+      case 's':
+        // search
+        if (command[1] == 'e') search(root, name);
+        // sub
+        else {
+          scanf("%d", &points);
+          if (!getNode(root, name)) {
+            printf("%s not found", name);
+          } else {
+            sub(root, name, points);
+          }
+        }
+        break;
+
+      // del
+      case 'd':
+        // see if customer exists first
+        Node* node = getNode(root, name);
+
+        // if customer exists, delete
+        if (node) {
+          Customer* customer = node->data;
+
+          del(root, name);
+
+          // free target customer; this part can't be done inside del as the
+          // recursive call would free customer replacing the target as well
+          free(customer);
+          printf("%s deleted", name);
+        }
+        // otherwise skip
+        else {
+          printf("%s not found", name);
+        }
+        break;
+
+      // count_smaller
+      case 'c':
+        printf("%d", countSmaller(root, name, 0));
+        break;
+
+      // add
+      case 'a':
+        scanf("%d", &points);
+        // check if node exists
+        Node* nodeToAdd = getNode(root, name);
+
+        // if it exists, then add points to it
+        if (nodeToAdd) {
+          nodeToAdd->data->points += points;
+          printf("%s %d", nodeToAdd->data->name, nodeToAdd->data->points);
+        }
+        // insert to tree otherwise
+        else {
+          Node* newNode = createNode(name, points);
+
+          // insert will return new root
+          root = insert(root, newNode);
+          printf("%s %d", newNode->data->name, newNode->data->points);
+        }
+        break;
+    }
+
+    printf("\n");
   }
 
   // array for final part of the answer
