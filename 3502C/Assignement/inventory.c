@@ -35,6 +35,27 @@ int hashfunc(char* word, int size) {
   return res;
 }
 
+// find the node we should be working with.
+Node* findNode(Node* node, char itemName[], int* complexity) {
+  // no item on this node
+  if (!node->iPtr) return node;
+
+  // if not the item we are looking for, traverse the linked list:
+  while (strcmp(node->iPtr->name, itemName) != 0) {
+    // printf("this node has item %s, looking for %s\n", item->name,
+    //  itemName);
+    // if next is NULL, the item doesn't exist. stop search
+    if (node->next == NULL) break;
+
+    (*complexity)++;
+
+    // traverse the linked list
+    node = node->next;
+  }
+
+  return node;
+}
+
 int main() {
   // theater's budget described in assignment
   int budget = 100000;
@@ -67,40 +88,24 @@ int main() {
       hashtable.lists[hash] = calloc(1, sizeof(Node));
     }
 
+    // all commands have at least complexity of 1.
+    complexity++;
+
     // node is now guaranteed to exist
     Node* node = hashtable.lists[hash];
 
+    // find the node we are actually going to be working with.
+    node = findNode(node, itemName, &complexity);
+
     // buy
     if (strcmp(command, "buy") == 0) {
-      complexity++;
       int quantity, totalPrice;
       scanf("%d %d", &quantity, &totalPrice);
-      // printf("quantity: %d\n", quantity);
 
       // there is an item in this node
       if (node->iPtr) {
-        Item* item = node->iPtr;
-        // printf("this node has item %s\n", item->name);
-
-        // if not the item we are looking for, traverse the linked list:
-        while (strcmp(item->name, itemName) != 0) {
-          // printf("this node has item %s, looking for %s\n", item->name,
-          //  itemName);
-          // if next is NULL, the item doesn't exist. stop search
-          if (node->next == NULL) break;
-
-          complexity++;
-          // point to the next item
-          item = node->next->iPtr;
-
-          // traverse the linked list
-          node = node->next;
-        }
-
         // if we still haven't found our item, node->next is NULL
-        if (strcmp(item->name, itemName) != 0) {
-          // printf("never found %s, creating new node right next to %s\n",
-          //        itemName, node->iPtr->name);
+        if (strcmp(node->iPtr->name, itemName) != 0) {
           // create and link nextNode
           node->next = calloc(1, sizeof(Node));
 
@@ -109,7 +114,6 @@ int main() {
         }
         // we are on the node the item exists in!
         else {
-          // printf("increasing %s\n", node->iPtr->name);
           // just increase the quantity
           node->iPtr->quantity += quantity;
         }
@@ -132,20 +136,10 @@ int main() {
     }
     // sell
     else if (strcmp(command, "sell") == 0) {
-      complexity++;
       int quantity;
       scanf("%d", &quantity);
 
-      // item is guaranteed to be in the inventory, so no NULL check for the
-      // node.
       Item* item = node->iPtr;
-
-      // if not the item we are looking for, traverse the linked list.
-      while (strcmp(item->name, itemName) != 0) {
-        complexity++;
-        item = node->next->iPtr;
-        node = node->next;
-      }
 
       // if requested quantity is larger than inventory, sell inventory
       if (item->quantity < quantity) {
@@ -161,23 +155,11 @@ int main() {
     }
     // change_price
     else {
-      complexity++;
       int newPrice;
       scanf("%d", &newPrice);
 
-      // item is guaranteed to be in the inventory, meaning this pointer is
-      // never NULL.
-      Item* item = node->iPtr;
-
-      // traverse linked list until we find the right item
-      while (strcmp(item->name, itemName) != 0) {
-        complexity++;
-        item = node->next->iPtr;
-        node = node->next;
-      }
-
       // change price
-      item->salePrice = newPrice;
+      node->iPtr->salePrice = newPrice;
     }
 
     if (strcmp(command, "change_price") != 0) {
