@@ -59,11 +59,13 @@ int main() {
     // hash and the node in question for this command
     int hash = hashfunc(itemName, TABLESIZE);
 
-    // if the list at this hash has no node, create a node for it.
-    // since the assignment guarantees items' existence on change_price and sell
-    // commands, this only occurrs on a buy command.
-    if (hashtable.lists[hash] == NULL)
+    // if there's no node at this hash, create one.
+    // since items' are guaranteed to exist on change_price and sell commands,
+    // this only occurrs on a buy command.
+    if (!hashtable.lists[hash]) {
+      // printf("creating new for %s\n", itemName);
       hashtable.lists[hash] = calloc(1, sizeof(Node));
+    }
 
     // node is now guaranteed to exist
     Node* node = hashtable.lists[hash];
@@ -74,22 +76,40 @@ int main() {
       int quantity, totalPrice;
       scanf("%d %d", &quantity, &totalPrice);
 
-      // there is an item in this node but not the same item; conflict
-      if (node->iPtr && strcmp(node->iPtr->name, itemName) != 0) {
-        // traverse through linked list until we reach the last node
-        while (node->next != NULL) {
+      // there is an item in this node
+      if (node->iPtr) {
+        Item* item = node->iPtr;
+
+        // if not the item we are looking for, traverse the linked list:
+        while (strcmp(item->name, itemName) != 0) {
+          // if next is NULL, the item doesn't exist. stop search
+          if (node->next == NULL) break;
+
           complexity++;
+          // point to the next item
+          item = node->next->iPtr;
+
+          // traverse the linked list
           node = node->next;
         }
 
-        // create and link nextNode
-        node->next = calloc(1, sizeof(Node));
+        // if the above while loop never found our item, node is NULL and is
+        // the node we want to assign the item to.
+        if (!node->next) {
+          // create and link nextNode
+          node->next = calloc(1, sizeof(Node));
 
-        // assign this last node as the node we will be working with
-        node = node->next;
+          // assign this last node as the node we will be working with
+          node = node->next;
+        }
+        // if next isn't NULL, we are on the node the item exists in!
+        else {
+          // just increase the quantity
+          node->iPtr->quantity += quantity;
+        }
       }
 
-      // if there is no item in this node
+      // no item in this node
       if (!node->iPtr) {
         // create item
         Item* item = calloc(1, sizeof(Item));
@@ -99,13 +119,6 @@ int main() {
 
         // insert the item in node
         node->iPtr = item;
-      }
-      // there is an item in this node and it's the same item!
-      else {
-        printf("---Item found, quantity is %d, adding %d\n",
-               node->iPtr->quantity, quantity);
-        // just increase the quantity
-        node->iPtr->quantity += quantity;
       }
 
       budget -= totalPrice;
