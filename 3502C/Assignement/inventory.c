@@ -38,19 +38,17 @@ int hashfunc(char* word, int size) {
 // find the node we should be working with.
 Node* findNode(Node* node, char itemName[], int* complexity) {
   // no item on this node
-  if (!node->iPtr) return node;
+  if (!node->iPtr) return NULL;
 
   // if not the item we are looking for, traverse the linked list:
   while (strcmp(node->iPtr->name, itemName) != 0) {
-    // printf("this node has item %s, looking for %s\n", item->name,
-    //  itemName);
     // if next is NULL, the item doesn't exist. stop search
-    if (node->next == NULL) break;
-
-    (*complexity)++;
+    if (node->next == NULL) return NULL;
 
     // traverse the linked list
     node = node->next;
+    // then the item could be on the next node
+    (*complexity)++;
   }
 
   return node;
@@ -76,7 +74,7 @@ int main() {
     char command[COMMAND_MAX + 1], itemName[MAXLEN + 1];
 
     scanf("%s %s", command, itemName);
-    // printf("--- command: %s, itemName: %s\n", command, itemName);
+    // printf("--- command: %s itemName: %s ---\n", command, itemName);
 
     // hash and the node in question for this command
     int hash = hashfunc(itemName, TABLESIZE);
@@ -88,47 +86,51 @@ int main() {
       hashtable.lists[hash] = calloc(1, sizeof(Node));
     }
 
-    // all commands have at least complexity of 1.
-    complexity++;
-
     // node is now guaranteed to exist
     Node* node = hashtable.lists[hash];
 
-    // find the node we are actually going to be working with.
-    node = findNode(node, itemName, &complexity);
+    // there is at least 1 step in every command.
+    complexity++;
 
     // buy
     if (strcmp(command, "buy") == 0) {
       int quantity, totalPrice;
       scanf("%d %d", &quantity, &totalPrice);
 
-      // there is an item in this node
-      if (node->iPtr) {
-        // if we still haven't found our item, node->next is NULL
-        if (strcmp(node->iPtr->name, itemName) != 0) {
-          // create and link nextNode
-          node->next = calloc(1, sizeof(Node));
+      // this node has the item
+      if (node->iPtr && strcmp(node->iPtr->name, itemName) == 0) {
+        node->iPtr->quantity += quantity;
+      }
+      // this node has an item but not the one we are looking for
+      else if (node->iPtr) {
+        // look for the item's node
+        Node* itemNode = findNode(node, itemName, &complexity);
 
-          // assign this last node as the node we will be working with
-          node = node->next;
+        // if item exists in this linked list
+        if (itemNode) {
+          itemNode->iPtr->quantity += quantity;
+          node = itemNode;
         }
-        // we are on the node the item exists in!
+        // item doesn't exist
         else {
-          // just increase the quantity
-          node->iPtr->quantity += quantity;
+          // add a new node to the front of the linked list
+          Node* tmp = node->next;
+          node->next = calloc(1, sizeof(Node));
+          node->next->next = tmp;
+
+          // setting the next node as the node to continue working with
+          node = node->next;
         }
       }
 
-      // no item in this node
+      // this node never had an item
       if (!node->iPtr) {
-        // printf("never found %s, creating item\n", itemName);
-        // create item
         Item* item = calloc(1, sizeof(Item));
         strcpy(item->name, itemName);
         item->quantity = quantity;
         item->salePrice = totalPrice / quantity;
 
-        // insert the item in node
+        // assigning item to this node
         node->iPtr = item;
       }
 
@@ -136,6 +138,7 @@ int main() {
     }
     // sell
     else if (strcmp(command, "sell") == 0) {
+      node = findNode(node, itemName, &complexity);
       int quantity;
       scanf("%d", &quantity);
 
@@ -155,6 +158,7 @@ int main() {
     }
     // change_price
     else {
+      node = findNode(node, itemName, &complexity);
       int newPrice;
       scanf("%d", &newPrice);
 
@@ -162,6 +166,7 @@ int main() {
       node->iPtr->salePrice = newPrice;
     }
 
+    // output for all commands but change_price
     if (strcmp(command, "change_price") != 0) {
       Item* item = node->iPtr;
 
