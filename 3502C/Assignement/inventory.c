@@ -1,3 +1,9 @@
+/*
+Ho Sim
+inventory.c
+2nd DEC 2023
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,9 +41,9 @@ int hashfunc(char* word, int size) {
   return res;
 }
 
-// find the node we should be working with.
+// find the node we should be working with. Return NULL if it doesn't exist.
 Node* findNode(Node* node, char itemName[], int* complexity) {
-  // no item on this node
+  // no item on this node. Item node doesn't exist.
   if (!node->iPtr) return NULL;
   int len = 1;
 
@@ -63,6 +69,28 @@ Node* findNode(Node* node, char itemName[], int* complexity) {
   return node;
 }
 
+// create an item.
+Item* createItem(char itemName[], int quantity, int totalPrice) {
+  Item* item = calloc(1, sizeof(Item));
+  strcpy(item->name, itemName);
+  item->quantity = quantity;
+  item->salePrice = totalPrice / quantity;
+
+  return item;
+}
+
+// frees item, then the node.
+void freeLinkedList(Node* node) {
+  // Recursively free each element in the list.
+  if (node != NULL) {
+    Node* temp = node->next;
+    freeLinkedList(temp);
+
+    free(node->iPtr);
+    free(node);
+  }
+}
+
 int main() {
   // theater's budget described in assignment
   int budget = 100000;
@@ -79,9 +107,10 @@ int main() {
   int commandCount;
   scanf("%d", &commandCount);
 
+  // command processing
   for (int i = 0; i < commandCount; i++) {
+    // universal input
     char command[COMMAND_MAX + 1], itemName[MAXLEN + 1];
-
     scanf("%s %s", command, itemName);
 
     // hash and the node in question for this command
@@ -102,23 +131,21 @@ int main() {
       int quantity, totalPrice;
       scanf("%d %d", &quantity, &totalPrice);
 
-      // this node has the item
-      if (node->iPtr && strcmp(node->iPtr->name, itemName) == 0) {
-        complexity++;
+      // find the node this item exists in. May be NULL!
+      Node* itemNode = findNode(node, itemName, &complexity);
+
+      // item exists on a node
+      if (itemNode) {
+        // set itemNode as the node we are working with.
+        node = itemNode;
+
+        // then just increase the quantity
         node->iPtr->quantity += quantity;
       }
-      // this node has an item but not the one we are looking for
-      else if (node->iPtr) {
-        // look for the item's node
-        Node* itemNode = findNode(node, itemName, &complexity);
-
-        // if item exists in this linked list
-        if (itemNode) {
-          itemNode->iPtr->quantity += quantity;
-          node = itemNode;
-        }
-        // item doesn't exist
-        else {
+      // the item doesn't exist
+      else {
+        // if this node have an item,
+        if (node->iPtr) {
           // add a new node to the front of the linked list
           Node* newNode = calloc(1, sizeof(Node));
           hashtable.lists[hash] = newNode;
@@ -129,32 +156,27 @@ int main() {
           // setting the new node as the node to continue working with
           node = newNode;
         }
-      }
 
-      // this node never had an item
-      if (!node->iPtr) {
-        // increasing linked list length = complexity++
+        // whether this node has an item or not, this item must be created.
+        //  increasing linked list length = complexity++
         complexity++;
 
-        // creating item
-        Item* item = calloc(1, sizeof(Item));
-        strcpy(item->name, itemName);
-        item->quantity = quantity;
-        item->salePrice = totalPrice / quantity;
-
-        // assigning item to this node
-        node->iPtr = item;
+        // create item and assign it to this node
+        node->iPtr = createItem(itemName, quantity, totalPrice);
       }
 
+      // wallet grows smaller
       budget -= totalPrice;
     }
     // sell
     else if (strcmp(command, "sell") == 0) {
-      // assignment guarantees that node is never NULL for sell
-      node = findNode(node, itemName, &complexity);
       int quantity;
       scanf("%d", &quantity);
 
+      // assignment guarantees that node is never NULL for sell
+      node = findNode(node, itemName, &complexity);
+
+      // so iPtr exists too
       Item* item = node->iPtr;
 
       // if requested quantity is larger than inventory, sell inventory
@@ -190,6 +212,14 @@ int main() {
 
   printf("%d\n", budget);
   printf("%d\n", complexity);
+
+  // free all linked list in each hash
+  for (int i = 0; i < TABLESIZE; i++) {
+    freeLinkedList(hashtable.lists[i]);
+  }
+
+  // free the hashtable
+  free(hashtable.lists);
 
   return 0;
 }
