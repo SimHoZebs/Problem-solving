@@ -39,16 +39,25 @@ int hashfunc(char* word, int size) {
 Node* findNode(Node* node, char itemName[], int* complexity) {
   // no item on this node
   if (!node->iPtr) return NULL;
+  int len = 1;
+
+  // if there is an item on this node, the item is at least the 1st in the
+  // linked list.
+  (*complexity)++;
 
   // if not the item we are looking for, traverse the linked list:
   while (strcmp(node->iPtr->name, itemName) != 0) {
-    // if next is NULL, the item doesn't exist. stop search
-    if (node->next == NULL) return NULL;
+    // if next is NULL, nowhere to traverse to. The item doesn't exist.
+    if (node->next == NULL) {
+      return NULL;
+    }
 
     // traverse the linked list
     node = node->next;
+
     // then the item could be on the next node
     (*complexity)++;
+    len++;
   }
 
   return node;
@@ -74,7 +83,6 @@ int main() {
     char command[COMMAND_MAX + 1], itemName[MAXLEN + 1];
 
     scanf("%s %s", command, itemName);
-    // printf("--- command: %s itemName: %s ---\n", command, itemName);
 
     // hash and the node in question for this command
     int hash = hashfunc(itemName, TABLESIZE);
@@ -89,9 +97,6 @@ int main() {
     // node is now guaranteed to exist
     Node* node = hashtable.lists[hash];
 
-    // there is at least 1 step in every command.
-    complexity++;
-
     // buy
     if (strcmp(command, "buy") == 0) {
       int quantity, totalPrice;
@@ -99,6 +104,7 @@ int main() {
 
       // this node has the item
       if (node->iPtr && strcmp(node->iPtr->name, itemName) == 0) {
+        complexity++;
         node->iPtr->quantity += quantity;
       }
       // this node has an item but not the one we are looking for
@@ -114,17 +120,23 @@ int main() {
         // item doesn't exist
         else {
           // add a new node to the front of the linked list
-          Node* tmp = node->next;
-          node->next = calloc(1, sizeof(Node));
-          node->next->next = tmp;
+          Node* newNode = calloc(1, sizeof(Node));
+          hashtable.lists[hash] = newNode;
 
-          // setting the next node as the node to continue working with
-          node = node->next;
+          // put the current node as the next node of this new node
+          newNode->next = node;
+
+          // setting the new node as the node to continue working with
+          node = newNode;
         }
       }
 
       // this node never had an item
       if (!node->iPtr) {
+        // increasing linked list length = complexity++
+        complexity++;
+
+        // creating item
         Item* item = calloc(1, sizeof(Item));
         strcpy(item->name, itemName);
         item->quantity = quantity;
@@ -138,6 +150,7 @@ int main() {
     }
     // sell
     else if (strcmp(command, "sell") == 0) {
+      // assignment guarantees that node is never NULL for sell
       node = findNode(node, itemName, &complexity);
       int quantity;
       scanf("%d", &quantity);
@@ -158,6 +171,7 @@ int main() {
     }
     // change_price
     else {
+      // assignment guarantees that node is never NULL for change_price
       node = findNode(node, itemName, &complexity);
       int newPrice;
       scanf("%d", &newPrice);
