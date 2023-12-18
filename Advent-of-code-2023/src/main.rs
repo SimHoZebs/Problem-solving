@@ -11,6 +11,7 @@ fn main() {
         }
         2 => {
             day2::part1();
+            day2::part2();
         }
         _ => println!("Invalid day"),
     }

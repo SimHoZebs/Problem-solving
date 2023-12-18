@@ -19,11 +19,11 @@ pub fn part1() {
 
         for attempt in array[1].split(';') {
             for cube_with_spaces in attempt.split(',') {
-                let num_and_cube: Vec<&str> = cube_with_spaces.trim().split(' ').collect();
-                let num = num_and_cube[0].parse::<i32>().unwrap();
-                let cube = num_and_cube[1];
+                let num_and_color: Vec<&str> = cube_with_spaces.trim().split(' ').collect();
+                let num = num_and_color[0].parse::<i32>().unwrap();
+                let color = num_and_color[1];
 
-                let color_index = match cube {
+                let color_index = match color {
                     "red" => 0,
                     "green" => 1,
                     "blue" => 2,
@@ -52,4 +52,33 @@ pub fn part1() {
 pub fn part2() {
     println!("part2");
     let input = fs::read_to_string("./src/day2.in").expect("Read day2.in");
+
+    let mut ans = 0;
+
+    for game in input.lines() {
+        let array: Vec<&str> = game.split(':').collect();
+
+        let mut max = [0, 0, 0];
+        for attempt in array[1].split(';') {
+            for cube_with_spaces in attempt.split(',') {
+                let num_and_color: Vec<&str> = cube_with_spaces.trim().split(' ').collect();
+                let num = num_and_color[0].parse::<i32>().unwrap();
+                let color = num_and_color[1];
+
+                let color_index = match color {
+                    "red" => 0,
+                    "green" => 1,
+                    "blue" => 2,
+                    _ => 99,
+                };
+
+                if num > max[color_index] {
+                    max[color_index] = num;
+                }
+            }
+        }
+        ans += max[0] * max[1] * max[2];
+    }
+
+    println!("{ans}");
 }
