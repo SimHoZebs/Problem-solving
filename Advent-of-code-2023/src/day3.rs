@@ -31,9 +31,33 @@ pub fn part1() {
         }
     }
 
+    fn gather_coords(
+        adj_cell: &(usize, &str),
+        line_array_len: usize,
+        j: usize,
+        adj_coords: &mut Vec<[usize; 2]>,
+    ) {
+        let (adj_i, adj_line) = adj_cell;
+        let line_iterable: Vec<char> = adj_line.chars().collect();
+
+        //mid
+        if line_iterable[j].is_digit(10) {
+            adj_coords.push([*adj_i, j]);
+        } else {
+            //left diagonal
+            if j > 0 {
+                adj_coords.push([*adj_i, j - 1]);
+            }
+            //right diagonal
+            if j < line_array_len - 1 {
+                adj_coords.push([*adj_i, j + 1]);
+            }
+        }
+    }
+
     let input = fs::read_to_string("./src/day3.in").expect("cound't read day3.in");
 
-    let line_array: Vec<(usize, &str)> = input.split("\n").enumerate().collect();
+    let line_array: Vec<(usize, &str)> = input.lines().enumerate().collect();
     let line_array_len = line_array.len();
 
     let mut answer: u32 = 0;
@@ -52,50 +76,15 @@ pub fn part1() {
 
             //top
             if *i > 0 {
-                let (adj_i, adj_line) = line_array[*i - 1];
-                let line_iterable: Vec<char> = adj_line.chars().collect();
-
-                //top mid
-                if line_iterable[j].is_digit(10) {
-                    adj_coords.push([adj_i, j]);
-                } else {
-                    //top left
-                    if j > 0 {
-                        adj_coords.push([adj_i, j - 1]);
-                    }
-                    //top right
-                    if j < line_array_len - 1 {
-                        adj_coords.push([adj_i, j + 1]);
-                    }
-                }
+                gather_coords(&line_array[*i - 1], line_array_len, j, &mut adj_coords);
             }
 
-            //left
-            if j > 0 {
-                adj_coords.push([*i, j - 1]);
-            }
-            //right
-            if j < line_array_len {
-                adj_coords.push([*i, j + 1]);
-            }
+            //sides
+            gather_coords(&line_array[*i], line_array_len, j, &mut adj_coords);
 
             //bottom
             if *i < line_array_len - 1 {
-                let (adj_i, adj_line) = line_array[*i + 1];
-                let line_iterable: Vec<char> = adj_line.chars().collect();
-
-                if line_iterable[j].is_digit(10) {
-                    //bottom mid
-                    adj_coords.push([adj_i, j]);
-                } else {
-                    //bottom left
-                    if j > 0 {
-                        adj_coords.push([adj_i, j - 1]);
-                    }
-                    if j < line_array_len {
-                        adj_coords.push([adj_i, j + 1]);
-                    }
-                }
+                gather_coords(&line_array[*i + 1], line_array_len, j, &mut adj_coords);
             }
 
             //go through the coords and gather digits in the coords

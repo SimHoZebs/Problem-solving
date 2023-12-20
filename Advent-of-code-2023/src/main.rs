@@ -5,6 +5,7 @@ pub mod day3;
 fn main() {
     let day: u8 = 3;
 
+    println!("day {day} solution:");
     match day {
         1 => {
             day1::part1();
@@ -16,6 +17,7 @@ fn main() {
         }
         3 => {
             day3::part1();
+            day3::part2();
         }
         _ => println!("Invalid day"),
     }
