@@ -46,4 +46,13 @@ public class MyHashTable {
         int index = hashFunc(num);
         return table[index].get(num);
     }
+
+    public String toString() {
+        StringBuilder tableToString = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+            tableToString.append(i + ": ").append(table[i].toString()).append("\n");
+        }
+
+        return tableToString.toString();
+    }
 }

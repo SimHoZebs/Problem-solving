@@ -51,7 +51,19 @@ public class ArrayListAlt {
     }
 
     public String toString() {
-        return records.toString();
+        if (records.size() == 0) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (Record r : records) {
+            sb.append(r.toString()).append(", ");
+        }
+        sb.delete(sb.length() - 2, sb.length());
+        sb.append("]");
+        return sb.toString();
+
     }
 
     /**

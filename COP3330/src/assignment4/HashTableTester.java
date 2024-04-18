@@ -1,43 +1,43 @@
 package assignment4;
 
-import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * HashTableTester
- * You will take the name of the data file as a command line parameter. You will
- * create a myHashTable object and do the actions stated in the file. Then you
- * will print the resulting myHashTable.
- *
- * Example data file
- * 
- * 7
- * add 12:Test
- * add 22:Test1
- * add 26:Test5
- * add 97:Test2
- * add 19:Test3
- * add 22:Test4
- * remove 9
  */
 public class HashTableTester {
 
     public static void main(String[] args) {
-        MyHashTable myHashTable = new MyHashTable();
-        String fileName = args[0];
-        Scanner scanner = new Scanner(fileName);
-        int size = scanner.nextInt();
-        for (int i = 0; i < size; i++) {
-            String action = scanner.next();
-            int number = scanner.nextInt();
-            String value = scanner.next();
-            Record record = new Record(number, value);
-            if (action.equals("add")) {
-                myHashTable.add(record);
-            } else if (action.equals("remove")) {
-                myHashTable.remove(number);
+        System.out.println("Hello, World!");
+        List<String> lines = null;
+        try {
+            lines = Files.readAllLines(Paths.get(args[0]));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        int hashSize = Integer.parseInt(lines.get(0));
+        MyHashTable hashTable = new MyHashTable(hashSize);
+
+        for (String line : lines) {
+
+            String[] parts = line.split(" ");
+            if (parts[0].equals("add")) {
+                String[] recordParts = parts[1].split(":");
+                Record record = new Record(Integer.parseInt(recordParts[0]), recordParts[1]);
+                hashTable.add(record);
+            } else if (parts[0].equals("remove")) {
+                try {
+                    hashTable.remove(Integer.parseInt(parts[1]));
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
             }
         }
-        scanner.close();
+
+        System.out.println(hashTable.toString());
     }
 
 }
